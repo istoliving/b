@@ -5,6 +5,6 @@ Package b implements a B+tree.
 
 Installation:
 
-    $ go get github.com/cznic/b
+    $ go get modernc.org/b
 
-Documentation: [godoc.org/github.com/cznic/b](http://godoc.org/github.com/cznic/b)
+Documentation: [godoc.org/modernc.org/b](http://godoc.org/modernc.org/b)
