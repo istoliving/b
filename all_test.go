@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package b
+package b // import "modernc.org/b"
 
 import (
 	"bytes"
@@ -15,8 +15,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cznic/mathutil"
-	"github.com/cznic/strutil"
+	"modernc.org/mathutil"
+	"modernc.org/strutil"
 )
 
 var caller = func(s string, va ...interface{}) {
