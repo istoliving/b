@@ -1461,3 +1461,106 @@ func TestPR4(t *testing.T) {
 		t.Fatalf("key lost: %v", k)
 	}
 }
+
+// https://gitlab.com/cznic/b/issues/14
+func TestIssue14(t *testing.T) {
+	tr := TreeNew(func(a, b interface{}) int {
+		x := a.(int)
+		y := b.(int)
+		if x < y {
+			return -1
+		}
+
+		if x > y {
+			return 1
+		}
+
+		return 0
+	})
+
+	for i := 0; i < 10; i += 2 {
+		tr.Set(i, i)
+	}
+
+	t.Run("Iteration", func(t *testing.T) {
+		e, err := tr.SeekFirst()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < 10; i += 2 {
+			k, v, err := e.Next()
+			if err != nil {
+				t.Fatal(i, err)
+			}
+
+			if g, e := k, i; g != e {
+				t.Fatal(g, e)
+			}
+
+			if g, e := v, i; g != e {
+				t.Fatal(g, e)
+			}
+		}
+	})
+
+	t.Run("Seek then prev", func(t *testing.T) {
+		e, _ := tr.Seek(6)
+		k, v, err := e.Prev()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if g, e := k, 6; g != e {
+			t.Fatal(g, e)
+		}
+
+		if g, e := v, 6; g != e {
+			t.Fatal(g, e)
+		}
+
+		if k, v, err = e.Prev(); err != nil {
+			t.Fatal(err)
+		}
+
+		if g, e := k, 4; g != e {
+			t.Fatal(g, e)
+		}
+
+		if g, e := v, 4; g != e {
+			t.Fatal(g, e)
+		}
+	})
+
+	t.Run("First next prev", func(t *testing.T) {
+		e, err := tr.SeekFirst()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		k, _, err := e.Next()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if g, e := k, 0; g != e {
+			t.Fatal(g, e)
+		}
+
+		if k, _, err = e.Next(); err != nil {
+			t.Fatal(err)
+		}
+
+		if g, e := k, 2; g != e {
+			t.Fatal(g, e)
+		}
+
+		if k, _, err = e.Prev(); err != nil {
+			t.Fatal(err)
+		}
+
+		if g, e := k, 0; g != e {
+			t.Fatal(g, e)
+		}
+	})
+}
