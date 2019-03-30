@@ -460,6 +460,47 @@ func (t *Tree) overflow(p *x, q *d, pi, i int, k interface{} /*K*/, v interface{
 	// space plus one. In the case where the new item is to be inserted within
 	// the calculated shift space, s is reduced to include only the
 	// data items up to the index of the new data item.
+	//
+	// This is more useful as kd gets larger, but only benefits inserts. It
+	// has no effect on gets, but may marginally affect Next performance
+	// (but not Prev). Omitted the 1e3/1.4 cases because they had >10%
+	// variance. The performance differences may be more noticeable if you
+	// have a non-interface key type, because that will generally be much
+	// faster overall, making the copies are a bigger part of the workload.
+
+	// kd=32
+	// name               old time/op  new time/op  delta
+	// DeCopies/Linear-8   281ns ± 4%   264ns ± 7%   -5.99%  (p=0.032 n=5+5)
+	// DeCopies/Random-8  1.08µs ± 7%  1.07µs ± 5%     ~     (p=0.841 n=5+5)
+	// SetSeq1e5-8        19.9ms ± 2%  17.9ms ± 5%   -9.81%  (p=0.008 n=5+5)
+	// SetSeq1e6-8         230ms ± 2%   211ms ± 7%   -8.52%  (p=0.016 n=5+5)
+	// SetRnd1e5-8        44.7ms ± 1%  41.4ms ± 4%   -7.51%  (p=0.008 n=5+5)
+	// SetRnd1e6-8         827ms ± 2%   762ms ± 2%   -7.92%  (p=0.008 n=5+5)
+	// Next1e5-8           774µs ± 2%   763µs ± 1%     ~     (p=0.222 n=5+5)
+	// Next1e6-8          7.89ms ± 2%  7.77ms ± 2%   -1.54%  (p=0.008 n=5+5)
+
+	// kd=128
+	// name               old time/op  new time/op  delta
+	// DeCopies/Linear-8   304ns ± 2%   266ns ± 7%  -12.31%  (p=0.008 n=5+5)
+	// DeCopies/Random-8  1.28µs ± 2%  1.13µs ± 5%  -11.11%  (p=0.008 n=5+5)
+	// SetSeq1e5-8        22.9ms ± 3%  18.1ms ± 9%  -20.98%  (p=0.008 n=5+5)
+	// SetSeq1e6-8         257ms ± 2%   201ms ± 3%  -21.81%  (p=0.008 n=5+5)
+	// SetRnd1e5-8        56.0ms ± 0%  49.6ms ± 3%  -11.41%  (p=0.008 n=5+5)
+	// SetRnd1e6-8         1.13s ± 3%   1.04s ± 8%   -7.62%  (p=0.032 n=5+5)
+	// Next1e5-8           714µs ± 2%   755µs ± 2%   +5.77%  (p=0.008 n=5+5)
+	// Next1e6-8          7.48ms ± 1%  7.85ms ± 2%   +4.95%  (p=0.008 n=5+5)
+
+	// kd=256
+	// name               old time/op  new time/op  delta
+	// DeCopies/Linear-8   350ns ± 1%   255ns ± 7%  -27.16%  (p=0.008 n=5+5)
+	// DeCopies/Random-8  1.61µs ± 1%  1.32µs ± 7%  -18.28%  (p=0.008 n=5+5)
+	// SetSeq1e5-8        27.7ms ± 2%  17.6ms ± 5%  -36.60%  (p=0.008 n=5+5)
+	// SetSeq1e6-8         302ms ± 2%   196ms ± 1%  -35.21%  (p=0.008 n=5+5)
+	// SetRnd1e5-8        74.9ms ± 2%  58.9ms ± 2%  -21.43%  (p=0.008 n=5+5)
+	// SetRnd1e6-8         1.43s ± 0%   1.19s ± 2%  -16.45%  (p=0.008 n=5+5)
+	// Next1e5-8           717µs ± 2%   754µs ± 2%   +5.21%  (p=0.008 n=5+5)
+	// Next1e6-8          7.40ms ± 2%  7.77ms ± 1%   +4.99%  (p=0.008 n=5+5)
+
 	if l != nil && l.c < 2*kd && i != 0 {
 		s := (2*kd-l.c)/2 + 1 // half plus one
 		if i < s {
