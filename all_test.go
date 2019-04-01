@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"math/rand"
 	"path"
 	"runtime"
 	"runtime/debug"
@@ -151,6 +152,22 @@ func rng() *mathutil.FC32 {
 
 func cmp(a, b interface{}) int {
 	return a.(int) - b.(int)
+}
+
+func copyBenchmark(fn func(int) int) func(b *testing.B) {
+	return func(b *testing.B) {
+		r := TreeNew(cmp)
+		for i := 0; i < b.N; i++ {
+			j := fn(i)
+			r.Set(j, j)
+		}
+		b.Logf("copied %d de for N=%d\n", r.countCopies(), b.N)
+	}
+}
+
+func BenchmarkDeCopies(b *testing.B) {
+	b.Run("Linear", copyBenchmark(func(i int) int { return i }))
+	b.Run("Random", copyBenchmark(func(i int) int { return int(rand.Int63()) }))
 }
 
 func TestGet0(t *testing.T) {
